@@ -1,43 +1,41 @@
-class StateMachine:
-    def _init_(self):
-        self.current_state = 'q0'  # Initial state
+class State:
+    def __init__(self, name):
+        self.name = name
+        self.transitions = {}
 
-    def process_input(self, input_str):
-        for char in input_str:
-            if self.current_state == 'q0':
-                if char == 'a':
-                    self.current_state = 'q1'
-                else:
-                    self.current_state = 'q0'
-            elif self.current_state == 'q1':
-                if char == 'b':
-                    self.current_state = 'q2'
-                elif char == 'a':
-                    self.current_state = 'q1'
-                else:
-                    self.current_state = 'q0'
-            elif self.current_state == 'q2':
-                # Accepting state, no transitions allowed
-                return True
+    def add_transition(self, symbol, next_state):
+        self.transitions[symbol] = next_state
 
-        # Check if the final state is 'q2'
-        return self.current_state == 'q2'
+class Automaton:
+    def __init__(self):
+        self.start_state = State("start")
+        self.end_state = State("end")
+        self.current_state = self.start_state
+        self.start_state.add_transition('a', self.end_state)
+        self.end_state.add_transition('b', self.end_state)
 
-
-def main():
-    # Example usage
-    automaton = StateMachine()
-
-    # Strings to test
-    test_strings = ['aab', 'abc', 'abab', 'aaaab', 'ab']
-
-    for test_str in test_strings:
-        result = automaton.process_input(test_str)
-        if result:
-            print(f"Accepted: '{test_str}'")
+    def process_symbol(self, symbol):
+        if symbol in self.current_state.transitions:
+            self.current_state = self.current_state.transitions[symbol]
         else:
-            print(f"Rejected: '{test_str}'")
+            self.reset()
 
+    def reset(self):
+        self.current_state = self.start_state
 
-if _name_ == "_main_":
-    main()
+    def is_accepted(self):
+        return self.current_state == self.end_state
+
+def test_automaton():
+    automaton = Automaton()
+    test_strings = ['ab', 'aab', 'abb', 'ba', 'b']
+    for test_string in test_strings:
+        for symbol in test_string:
+            automaton.process_symbol(symbol)
+        if automaton.is_accepted():
+            print(f"'{test_string}' is accepted")
+        else:
+            print(f"'{test_string}' is not accepted")
+        automaton.reset()
+
+test_automaton()
